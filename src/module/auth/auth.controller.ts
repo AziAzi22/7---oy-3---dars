@@ -30,10 +30,11 @@ export class AuthController {
     return this.authService.verify(verifyAuthDto);
   }
 
-  // @Post("login")
-  // login(@Body() loginAuthDto: LoginAuthDto) {
-  //   return this.authService.login(loginAuthDto);
-  // }
+  @HttpCode(200)
+  @Post("login")
+  login(@Body() loginAuthDto: LoginAuthDto) {
+    return this.authService.login(loginAuthDto);
+  }
 
   // @Get()
   // findAll() {

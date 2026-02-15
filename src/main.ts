@@ -9,6 +9,7 @@ async function bootstrap() {
     new ValidationPipe({
       whitelist: true,
       transform: true,
+      forbidNonWhitelisted: true,
     }),
   );
 
@@ -16,4 +17,5 @@ async function bootstrap() {
     console.log("PORT:", Number(process.env.PORT) ?? 3000);
   });
 }
+
 bootstrap();

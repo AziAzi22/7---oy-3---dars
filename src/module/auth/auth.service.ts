@@ -102,6 +102,8 @@ export class AuthService {
         throw new BadRequestException("wrong otp");
       }
 
+      this.authRepository.update(foundedUser.id, { otp: "", otpTime: 0 });
+
       const payload = {
         id: foundedUser.id,
         email: foundedUser.email,
@@ -116,30 +118,44 @@ export class AuthService {
     }
   }
 
-  // async login(
-  //   loginAuthDto: LoginAuthDto,
-  // ): Promise<{ token: string } | { message: string }> {
-  //   const { email, password } = loginAuthDto;
+  // login
 
-  //   const foundedUser = await this.authModel.findOne({
-  //     where: { email },
-  //   });
+  async login(loginAuthDto: LoginAuthDto): Promise<{ message: string }> {
+    const { email, password } = loginAuthDto;
 
-  //   if (!foundedUser) throw new UnauthorizedException("user not found");
+    const foundedUser = await this.authRepository.findOne({
+      where: { email },
+    });
 
-  //   const comp = await bcrypt.compare(
-  //     password,
-  //     foundedUser.dataValues.password,
-  //   );
+    if (!foundedUser) throw new UnauthorizedException("user not found");
 
-  //   if (comp) {
-  //     return {
-  //       token: await this.jwtService.signAsync({ email: foundedUser.email }),
-  //     };
-  //   }
+    const comp = await bcrypt.compare(password, foundedUser.password);
 
-  //   return { message: "invalid password" };
-  // }
+    if (comp) {
+      const code = Array.from({ length: 7 }, () =>
+        Math.floor(Math.random() * 10),
+      ).join("");
+
+      await this.transporter.sendMail({
+        from: "aziazi22t@gmail.com",
+        to: email,
+        subject: "Otp",
+        text: "simple",
+        html: `<b>Hello World ${code}<b>`,
+      });
+
+      const time = Date.now() + 240000;
+
+      await this.authRepository.update(foundedUser.id, {
+        otp: code,
+        otpTime: time,
+      });
+
+      return { message: "otp send, please check your email" };
+    } else {
+      return { message: "invalid password" };
+    }
+  }
 
   // async findAll(): Promise<Auth[]> {
   //   return await this.authModel.findAll();
