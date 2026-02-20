@@ -3,12 +3,12 @@ import { Column, Entity } from "typeorm";
 
 @Entity({ name: "article" })
 export class Article extends BaseEntity {
-  @Column({ length: 500 })
+  @Column()
   heading: string;
 
-  @Column({ type: "text", length: 20000 })
+  @Column({ type: "text" })
   body: string;
 
-  @Column({ length: 500 })
+  @Column()
   backgroundImage: string;
 }

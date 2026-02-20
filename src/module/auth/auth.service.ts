@@ -5,7 +5,6 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from "@nestjs/common";
-import { UpdateAuthDto } from "./dto/update-auth.dto";
 import { Auth } from "./entities/auth.entity";
 import { CreateAuthDto } from "./dto/create-auth.dto";
 import * as bcrypt from "bcrypt";
@@ -13,7 +12,6 @@ import * as nodemailer from "nodemailer";
 import { LoginAuthDto } from "./dto/login-auth.dto";
 import { JwtService } from "@nestjs/jwt";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Transporter } from "nodemailer";
 import { Repository } from "typeorm";
 import { VerifyAuthDto } from "./dto/verify-auth.dto";
 
@@ -69,7 +67,7 @@ export class AuthService {
 
       await this.authRepository.save(user);
 
-      return { message: "User deleted" };
+      return { message: "you are registered" };
     } catch (error) {
       throw new InternalServerErrorException(error.message);
     }
@@ -87,7 +85,7 @@ export class AuthService {
 
       if (!foundedUser) throw new NotFoundException("user not found");
 
-      const otpValidation = /^\d{6}$/.test(otp);
+      const otpValidation = /^\d{7}$/.test(otp);
 
       if (!otpValidation) {
         throw new BadRequestException("wrong otp validation");
@@ -107,7 +105,7 @@ export class AuthService {
       const payload = {
         id: foundedUser.id,
         email: foundedUser.email,
-        role: foundedUser.role,
+        roles: foundedUser.role,
       };
 
       const acces_token = await this.jwtService.signAsync(payload);
