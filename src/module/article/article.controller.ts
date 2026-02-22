@@ -9,6 +9,8 @@ import {
   UseInterceptors,
   UploadedFile,
   UseGuards,
+  Req,
+  Query,
 } from "@nestjs/common";
 import { ArticleService } from "./article.service";
 import { CreateArticleDto } from "./dto/create-article.dto";
@@ -32,6 +34,7 @@ import { AuthGuard } from "src/common/guard/auth.guard";
 import { RolesGuard } from "src/common/guard/roles.guard";
 import { Roles } from "src/common/decorators/roles.decorator";
 import { UserRole } from "src/shared/constants/user-role.constants";
+import { QueryArticleDto } from "./dto/query-article.dto";
 
 @ApiBearerAuth("JWT-auth")
 @UseGuards(AuthGuard)
@@ -44,7 +47,7 @@ export class ArticleController {
   // CREATE
 
   @UseGuards(RolesGuard)
-  @Roles(UserRole.ADMIN, UserRole.SUPERADMIN)
+  @Roles(UserRole.ADMIN, UserRole.SUPERADMIN, UserRole.USER)
   @ApiOperation({ description: "create article api (public)" })
   @ApiConsumes("multipart/form-data")
   @ApiBody({ type: CreateArticleSwaggerImageDto })
@@ -65,17 +68,29 @@ export class ArticleController {
   create(
     @Body() createArticleDto: CreateArticleDto,
     @UploadedFile() file: Express.Multer.File,
+    @Req() req: any,
   ) {
-    return this.articleService.create(createArticleDto, file);
+    return this.articleService.create(createArticleDto, file, req.user.id);
   }
 
   // GET ALL
 
   @ApiOperation({ description: "get all articles api (public)" })
   @ApiOkResponse({ description: "list of articles" })
-  @Get()
-  findAll() {
-    return this.articleService.findAll();
+  @Get("all_articles")
+  findAll(@Query() query: QueryArticleDto) {
+    return this.articleService.findAll(query);
+  }
+
+  // GET MY ARTICLES
+
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.SUPERADMIN, UserRole.USER)
+  @ApiOperation({ description: "get my articles api (owner)" })
+  @ApiOkResponse({ description: "list of my articles" })
+  @Get("my_articles")
+  findAllMyArticles(@Req() req: any) {
+    return this.articleService.findAllMyArticles(req.user.id);
   }
 
   // GET ONE
@@ -90,26 +105,26 @@ export class ArticleController {
 
   // UPDATE
 
-  @UseGuards(RolesGuard)
-  @Roles(UserRole.ADMIN, UserRole.SUPERADMIN)
-  @ApiOperation({ description: "update article api (owner)" })
-  @ApiBody({ type: CreateArticleDto })
-  @ApiOkResponse({ description: "article updated" })
-  @ApiNotFoundResponse({ description: "article not found" })
-  @Patch(":id")
-  update(@Param("id") id: string, @Body() updateArticleDto: UpdateArticleDto) {
-    return this.articleService.update(+id, updateArticleDto);
-  }
+  // @UseGuards(RolesGuard)
+  // @Roles(UserRole.ADMIN, UserRole.SUPERADMIN)
+  // @ApiOperation({ description: "update article api (owner)" })
+  // @ApiBody({ type: CreateArticleDto })
+  // @ApiOkResponse({ description: "article updated" })
+  // @ApiNotFoundResponse({ description: "article not found" })
+  // @Patch(":id")
+  // update(@Param("id") id: string, @Body() updateArticleDto: UpdateArticleDto) {
+  //   return this.articleService.update(+id, updateArticleDto);
+  // }
 
   // DELETE
 
   @UseGuards(RolesGuard)
-  @Roles(UserRole.ADMIN, UserRole.SUPERADMIN)
+  @Roles(UserRole.ADMIN, UserRole.SUPERADMIN, UserRole.USER)
   @ApiOperation({ description: "delete article api (owner)" })
   @ApiOkResponse({ description: "article deleted" })
   @ApiNotFoundResponse({ description: "article not found" })
   @Delete(":id")
-  remove(@Param("id") id: string) {
-    return this.articleService.remove(+id);
+  remove(@Param("id") id: string, @Req() req: any) {
+    return this.articleService.remove(+id, req.user.id);
   }
 }

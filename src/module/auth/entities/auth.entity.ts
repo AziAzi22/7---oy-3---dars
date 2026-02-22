@@ -1,6 +1,8 @@
 import { BaseEntity } from "src/database/base.entity";
+import { Article } from "src/module/article/entities/article.entity";
+import { Tag } from "src/module/tags/entities/tag.entity";
 import { UserRole } from "src/shared/constants/user-role.constants";
-import { Column, Entity } from "typeorm";
+import { Column, Entity, OneToMany } from "typeorm";
 
 @Entity({ name: "auth" })
 export class Auth extends BaseEntity {
@@ -24,4 +26,12 @@ export class Auth extends BaseEntity {
 
   @Column({ default: UserRole.USER })
   role: UserRole;
+
+  // relations
+
+  @OneToMany(() => Article, (article) => article.author)
+  articles: Article[];
+
+  @OneToMany(() => Tag, (tag) => tag.createdBy)
+  tags: Tag[];
 }
