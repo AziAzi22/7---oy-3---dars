@@ -6,17 +6,17 @@ export class QueryArticleDto {
   @IsNumber()
   @IsOptional()
   @Type(() => Number)
-  @ApiProperty({ default: 1, minimum: 1 })
+  @ApiProperty({ default: 1, minimum: 1, required: false })
   page?: number = 1;
 
   @IsNumber()
   @IsOptional()
   @Type(() => Number)
-  @ApiProperty({ default: 10, minimum: 1, maximum: 100 })
+  @ApiProperty({ default: 10, minimum: 1, maximum: 100, required: false })
   limit?: number = 10;
 
   @IsString()
   @IsOptional()
-  @ApiProperty({ default: "" })
+  @ApiProperty({ default: "", required: false })
   search?: string;
 }

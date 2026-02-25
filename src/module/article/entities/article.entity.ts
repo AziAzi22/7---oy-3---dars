@@ -1,4 +1,5 @@
 import { BaseEntity } from "src/database/base.entity";
+import { ArticleImage } from "src/module/article-images/entities/article-image.entity";
 import { Auth } from "src/module/auth/entities/auth.entity";
 import { Tag } from "src/module/tags/entities/tag.entity";
 import {
@@ -8,6 +9,7 @@ import {
   JoinTable,
   ManyToMany,
   ManyToOne,
+  OneToMany,
 } from "typeorm";
 
 @Entity({ name: "article" })
@@ -39,4 +41,9 @@ export class Article extends BaseEntity {
   @ManyToMany(() => Tag, (tag) => tag.articles)
   @JoinTable({ name: "article_id" })
   tags: Tag[];
+
+  @OneToMany(() => ArticleImage, (articleImage) => articleImage.article, {
+    cascade: true,
+  })
+  images: ArticleImage[];
 }

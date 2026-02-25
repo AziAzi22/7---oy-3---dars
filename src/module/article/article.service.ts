@@ -43,9 +43,10 @@ export class ArticleService {
     }
   }
 
-  // findAll
+  // FIND ALL
 
-  async findAll(query: QueryArticleDto): Promise<Article[]> {
+  async findAll(query: QueryArticleDto) {
+    // : Promise<{ result: Article[]; totalPages: number }>
     try {
       const { page = 1, limit = 10, search } = query;
 
@@ -54,12 +55,31 @@ export class ArticleService {
         .leftJoinAndSelect("article.author", "author")
         .leftJoinAndSelect("article.tags", "tags")
         .where("article.isActive = :isActive", { isActive: true })
-        // .andWhere("article.deletedAt = :deletedAt", { deletedAt: null })
         .andWhere("article.deletedAt is null");
 
-      return await this.articleRepo.find({
-        relations: ["author", "tags"], 
-      });
+      if (search) {
+        queryBuilder.andWhere(
+          "article.heading ILIKE :search OR article.body ILIKE :search OR tags.name ILIKE :search",
+          {
+            search: `%${search}%`,
+          },
+        );
+      }
+
+      const total = await queryBuilder.getCount();
+
+      const result = await queryBuilder
+        .orderBy("article.createdAt", "DESC")
+        .skip((page - 1) * limit)
+        .take(limit)
+        .getMany();
+
+      return {
+        next: total > page * limit ? { page: page + 1, limit } : null,
+        prev: page > 1 ? { page: page - 1, limit } : null,
+        result,
+        totalPages: Math.ceil(total / limit),
+      };
     } catch (error) {
       throw new InternalServerErrorException(error.message);
     }
