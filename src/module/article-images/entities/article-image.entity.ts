@@ -10,6 +10,6 @@ export class ArticleImage extends BaseEntity {
     @Column()
     sortOrder: number
 
-    @ManyToOne(()=> Article, (article) => article.images, {cascade: true})
+    @ManyToOne(()=> Article, (article) => article.images)
     article: Article
 }

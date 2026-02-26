@@ -115,28 +115,47 @@ export class ArticleService {
 
   // update
 
-  // async update(
-  //   id: number,
-  //   updateArticleDto: UpdateArticleDto,
-  // ): Promise<{ message: string }> {
-  //   try {
-  //     const foundedArticle = await this.articleRepo.findOne({ where: { id } });
+  async update(
+    id: number,
+    updateArticleDto: UpdateArticleDto,
+    file?: Express.Multer.File,
+  ): Promise<Article> {
+    try {
+      const article = await this.articleRepo.findOne({
+        where: { id },
+        relations: ["tags"],
+      });
 
-  //     if (!foundedArticle) throw new NotFoundException("article not found");
+      if (!article) {
+        throw new NotFoundException("article not found");
+      }
 
-  //     await this.articleRepo.update(foundedArticle.id, updateArticleDto);
+      if (updateArticleDto.tags) {
+        const tags = await this.tagRepo.findBy({
+          id: In(updateArticleDto.tags),
+        });
+        article.tags = tags;
+      }
 
-  //     return { message: "article updated" };
-  //   } catch (error) {
-  //     throw new InternalServerErrorException(error.message);
-  //   }
-  // }
+      if (file) {
+        article.backgroundImage = `http://localhost:4001/uploads/${file.filename}`;
+      }
+
+      Object.assign(article, updateArticleDto);
+
+      return await this.articleRepo.save(article);
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
 
   // delete
 
-  async remove(id: number, userId: Auth): Promise<{ message: string }> {
+  async remove(id: number, userId: number): Promise<{ message: string }> {
     try {
-      const foundedArticle = await this.articleRepo.findOne({ where: { id } });
+      const foundedArticle = await this.articleRepo.findOne({
+        where: { author: { id: userId } },
+      });
 
       if (!foundedArticle) throw new NotFoundException("article not found");
 

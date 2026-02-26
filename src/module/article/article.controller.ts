@@ -11,6 +11,7 @@ import {
   UseGuards,
   Req,
   Query,
+  ParseIntPipe,
 } from "@nestjs/common";
 import { ArticleService } from "./article.service";
 import { CreateArticleDto } from "./dto/create-article.dto";
@@ -35,6 +36,7 @@ import { RolesGuard } from "src/common/guard/roles.guard";
 import { Roles } from "src/common/decorators/roles.decorator";
 import { UserRole } from "src/shared/constants/user-role.constants";
 import { QueryArticleDto } from "./dto/query-article.dto";
+import { OwnerGuard } from "./guards/owner-guard";
 
 @ApiBearerAuth("JWT-auth")
 @UseGuards(AuthGuard)
@@ -105,26 +107,41 @@ export class ArticleController {
 
   // UPDATE
 
-  // @UseGuards(RolesGuard)
-  // @Roles(UserRole.ADMIN, UserRole.SUPERADMIN)
-  // @ApiOperation({ description: "update article api (owner)" })
-  // @ApiBody({ type: CreateArticleDto })
-  // @ApiOkResponse({ description: "article updated" })
-  // @ApiNotFoundResponse({ description: "article not found" })
-  // @Patch(":id")
-  // update(@Param("id") id: string, @Body() updateArticleDto: UpdateArticleDto) {
-  //   return this.articleService.update(+id, updateArticleDto);
-  // }
+  @UseGuards(RolesGuard, OwnerGuard)
+  @Roles(UserRole.ADMIN, UserRole.SUPERADMIN, UserRole.USER)
+  @ApiOperation({ description: "update article api (owner)" })
+  @ApiConsumes("multipart/form-data")
+  @ApiBody({ type: CreateArticleSwaggerImageDto })
+  @Patch(":id")
+  @UseInterceptors(
+    FileInterceptor("file", {
+      storage: diskStorage({
+        destination: path.join(process.cwd(), "uploads"),
+        filename: (req, file, cb) => {
+          const uniqueName = `${file.fieldname}${Math.random() * 1e9}`;
+          const ext = path.extname(file.originalname);
+          cb(null, uniqueName + ext);
+        },
+      }),
+    }),
+  )
+  update(
+    @Param("id", ParseIntPipe) id: number,
+    @Body() updateArticleDto: UpdateArticleDto,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    return this.articleService.update(id, updateArticleDto, file);
+  }
 
   // DELETE
 
-  @UseGuards(RolesGuard)
+  @UseGuards(RolesGuard, OwnerGuard)
   @Roles(UserRole.ADMIN, UserRole.SUPERADMIN, UserRole.USER)
   @ApiOperation({ description: "delete article api (owner)" })
   @ApiOkResponse({ description: "article deleted" })
   @ApiNotFoundResponse({ description: "article not found" })
   @Delete(":id")
-  remove(@Param("id") id: string, @Req() req: any) {
+  remove(@Param("id", ParseIntPipe) id: string, @Req() req: any) {
     return this.articleService.remove(+id, req.user.id);
   }
 }
