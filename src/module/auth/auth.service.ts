@@ -14,6 +14,7 @@ import { JwtService } from "@nestjs/jwt";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { VerifyAuthDto } from "./dto/verify-auth.dto";
+import { UserService } from "./user/user.service";
 
 @Injectable()
 export class AuthService {
@@ -21,6 +22,7 @@ export class AuthService {
   constructor(
     @InjectRepository(Auth) private authRepository: Repository<Auth>,
     private jwtService: JwtService,
+    private userService: UserService,
   ) {
     this.transporter = nodemailer.createTransport({
       service: "gmail",
@@ -154,6 +156,25 @@ export class AuthService {
     } else {
       return { message: "invalid password" };
     }
+  }
+
+  // google login
+
+  async googleLogin(userData: any) {
+    const user = await this.userService.findOrCreate(userData);
+    const payload = {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      roles: user.role,
+    };
+
+    const acces_token = await this.jwtService.signAsync(payload);
+
+    return {
+      acces_token,
+      message: "success",
+    };
   }
 
   // async findAll(): Promise<Auth[]> {

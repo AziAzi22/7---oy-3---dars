@@ -4,6 +4,10 @@ import { AuthController } from "./auth.controller";
 import { Auth } from "./entities/auth.entity";
 import { JwtModule } from "@nestjs/jwt";
 import { TypeOrmModule } from "@nestjs/typeorm";
+import { UserModule } from "./user/user.module";
+import { JWTStrategy } from "./jwt-strategy";
+import { GoogleStrategy } from "./google-strategy";
+import { GithubStrategy } from "./github-strategy";
 
 @Global()
 @Module({
@@ -14,8 +18,9 @@ import { TypeOrmModule } from "@nestjs/typeorm";
       secret: String(process.env.SECRET_KEY),
       signOptions: { expiresIn: "2d" },
     }),
+    UserModule
   ],
   controllers: [AuthController],
-  providers: [AuthService],
+  providers: [AuthService, JWTStrategy, GoogleStrategy, GithubStrategy],
 })
 export class AuthModule {}

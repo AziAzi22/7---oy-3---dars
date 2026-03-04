@@ -47,12 +47,12 @@ async function bootstrap() {
 
   app.use("/uploads", express.static("uploads"));
 
-  const PORT = process.env.PORT ?? 3000;
-
+  const PORT = process.env.PORT ?? 3000; 
+ 
   await app.listen(PORT, () => {
     console.log("Server is running at: http://localhost:" + PORT);
     console.log("Documentation link: http://localhost:" + PORT + "/api");
   });
-}
+} 
 
 bootstrap();

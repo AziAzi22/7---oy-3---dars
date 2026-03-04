@@ -7,6 +7,8 @@ import {
   Param,
   Delete,
   HttpCode,
+  UseGuards,
+  Req,
 } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { UpdateAuthDto } from "./dto/update-auth.dto";
@@ -14,10 +16,35 @@ import { CreateAuthDto } from "./dto/create-auth.dto";
 import { LoginAuthDto } from "./dto/login-auth.dto";
 import { VerifyAuthDto } from "./dto/verify-auth.dto";
 import { ApiBody } from "@nestjs/swagger";
+import { AuthGuard } from "@nestjs/passport";
 
 @Controller("auth")
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
+
+  // google
+
+  @Get("google")
+  @UseGuards(AuthGuard("google"))
+  authGoogle() {}
+
+  @Get("google/callback")
+  @UseGuards(AuthGuard("google"))
+  googleRedirect(@Req() req: any) {
+    return this.authService.googleLogin(req.user);
+  }
+
+  // github
+
+  @Get("github")
+  @UseGuards(AuthGuard("github"))
+  authGithub() {}
+
+  @Get("github/callback")
+  @UseGuards(AuthGuard("github"))
+  githubRedirect(@Req() req: any) {
+    return this.authService.googleLogin(req.user);
+  }
 
   @ApiBody({ type: CreateAuthDto })
   @HttpCode(200)

@@ -1,18 +1,18 @@
-import { BaseEntity } from "src/database/base.entity";
-import { Article } from "src/module/article/entities/article.entity";
-import { Tag } from "src/module/tags/entities/tag.entity";
-import { UserRole } from "src/shared/constants/user-role.constants";
+import { BaseEntity } from "../../../database/base.entity";
+import { Article } from "../../article/entities/article.entity";
+import { Tag } from "../../tags/entities/tag.entity";
+import { UserRole } from "../../../shared/constants/user-role.constants";
 import { Column, Entity, OneToMany } from "typeorm";
 
 @Entity({ name: "auth" })
 export class Auth extends BaseEntity {
-  @Column()
+  @Column({ nullable: true })
   username: string;
 
   @Column()
   email: string;
 
-  @Column()
+  @Column({ nullable: true })
   password: string;
 
   @Column({
@@ -21,11 +21,28 @@ export class Auth extends BaseEntity {
   })
   otp: string;
 
-  @Column({ type: "bigint" })
+  @Column({ type: "bigint", nullable: true })
   otpTime: number;
 
   @Column({ default: UserRole.USER })
   role: UserRole;
+
+  // extra info
+
+  @Column({ nullable: true })
+  fisrtname?: string;
+
+  @Column({ nullable: true })
+  lastname?: string;
+
+  @Column({ nullable: true })
+  profilePicture?: string;
+
+  @Column({ nullable: true })
+  accessToken?: string;
+
+  @Column({ nullable: true })
+  bio?: string;
 
   // relations
 
@@ -33,5 +50,9 @@ export class Auth extends BaseEntity {
   articles: Article[];
 
   @OneToMany(() => Tag, (tag) => tag.createdBy)
-  tags: Tag[];
+  tags: Tag[];  
 }
+
+// npm i @nestjs/passport passport passport-github2 passport-google-oauth2 passport-jwt 
+// npm i @nestjs-jwt @nestjs/mongoose mongoose
+// npm i --save-dev @types/passport-jwt  @types/passport-google-oauth2 @types/passport-github2
